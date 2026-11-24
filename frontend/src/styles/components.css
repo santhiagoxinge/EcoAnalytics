@@ -1384,23 +1384,10 @@
 
 .heatmap { --heat-low: #eef4fb; --heat-high: #0b4f9c; }
 
-@media (prefers-color-scheme: dark) {
-  .heatmap { --heat-low: #1c2633; --heat-high: #64b5ff; }
-}
 
 .heat-legend {
   width: 160px;
   height: 10px;
   border-radius: 5px;
   background: linear-gradient(90deg, #eef4fb, #0b4f9c);
-}
-
-@media (prefers-color-scheme: dark) {
-  .heat-legend { background: linear-gradient(90deg, #1c2633, #64b5ff); }
-}
-
-@media (prefers-color-scheme: dark) {
-  .map-frame .leaflet-tile-pane {
-    filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
-  }
 }

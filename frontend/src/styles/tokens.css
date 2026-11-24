@@ -1,4 +1,4 @@
-/* EcoAnalytics design tokens — Apple HIG–inspired, light and dark. */
+/* EcoAnalytics design tokens: tema claro permanente. */
 :root {
   color-scheme: light;
 
@@ -90,68 +90,4 @@
   /* Layout */
   --sidebar-width: 248px;
   --toolbar-height: 56px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #000000;
-    --bg-elevated: #1c1c1e;
-    --surface: #1c1c1e;
-    --surface-2: #232325;
-    --surface-sunken: #2c2c2e;
-    --sidebar: rgba(28, 28, 30, 0.82);
-    --toolbar: rgba(0, 0, 0, 0.72);
-    --overlay: rgba(0, 0, 0, 0.55);
-    --hover: rgba(255, 255, 255, 0.07);
-
-    --text: #f5f5f7;
-    --text-2: #a1a1a6;
-    --text-3: #8d8d93;
-
-    --border: rgba(255, 255, 255, 0.09);
-    --border-strong: rgba(255, 255, 255, 0.16);
-    --separator: rgba(84, 84, 88, 0.45);
-
-    --accent: #0a84ff;
-    --accent-hover: #409cff;
-    --accent-soft: rgba(10, 132, 255, 0.18);
-    --green: #30d158;
-    --green-fill: #30d158;
-    --green-soft: rgba(48, 209, 88, 0.16);
-    --orange: #ff9f0a;
-    --orange-fill: #ff9f0a;
-    --orange-soft: rgba(255, 159, 10, 0.16);
-    --red: #ff6961;
-    --red-fill: #ff453a;
-    --red-soft: rgba(255, 69, 58, 0.16);
-    --purple: #da8fff;
-    --purple-fill: #bf5af2;
-    --purple-soft: rgba(191, 90, 242, 0.18);
-    --yellow-fill: #ffd60a;
-    --gray-fill: #636366;
-
-    --aqi-good: #30d158;
-    --aqi-good-ink: #30d158;
-    --aqi-acceptable: #ffd60a;
-    --aqi-acceptable-ink: #ffd60a;
-    --aqi-sensitive: #ff9f0a;
-    --aqi-sensitive-ink: #ff9f0a;
-    --aqi-harmful: #ff453a;
-    --aqi-harmful-ink: #ff6961;
-    --aqi-very: #bf5af2;
-    --aqi-very-ink: #da8fff;
-    --aqi-hazard: #c0395f;
-    --aqi-hazard-ink: #ff7a9e;
-
-    --series-1: #0a84ff;
-    --series-2: #40c8e0;
-    --series-3: #ff9f0a;
-    --series-4: #bf5af2;
-    --grid: rgba(255, 255, 255, 0.07);
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
-    --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.6);
-  }
 }
