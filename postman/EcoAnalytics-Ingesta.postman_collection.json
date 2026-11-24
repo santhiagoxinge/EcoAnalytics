@@ -1,0 +1,250 @@
+{
+  "info": {
+    "name": "EcoAnalytics — Demostración de importación",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Ejecución manual sobre la base local demo. Esta colección incorpora hasta tres mediciones y deja un lote con sus incidencias. Antes de enviar, seleccione el CSV en Body/form-data/archivo. No utiliza ni modifica estaciones ajenas a los nombres del archivo. Autor: Cristhian Santiago Parra Erazo."
+  },
+  "item": [
+    {
+      "name": "Importación CSV — ejecutar en orden",
+      "item": [
+        {
+          "name": "HU-01 | Iniciar sesión como analista",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "HU-01 | Iniciar sesión como analista. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo_analista}}\",\n  \"contrasena\": \"{{clave_analista}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "const data = pm.response.json();",
+                  "pm.test('Token y usuario', () => {",
+                  "  pm.expect(data.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(data.usuario.rol).to.eql('ANALISTA');",
+                  "  pm.expect(data.usuario).not.to.have.property('contrasenaCifrada');",
+                  "});",
+                  "if (pm.response.code === 200 && data.token) pm.collectionVariables.set('token_analista', data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-04 | Cargar archivo de ejemplo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ingesta/cargar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ingesta",
+                "cargar"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-04 | Cargar archivo de ejemplo. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": "datos/mediciones-ejemplo.csv"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "const data=pm.response.json(); pm.test('Lote pendiente',()=>pm.expect(data.lote.estado).to.eql('PENDIENTE_REVISION')); if(data.lote)pm.collectionVariables.set('lote_id',String(data.lote.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-05 | Descargar incidencias del lote",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ingesta/{{lote_id}}/incidencias/exportar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ingesta",
+                "{{lote_id}}",
+                "incidencias",
+                "exportar"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-05 | Descargar incidencias del lote. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Formato csv\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/csv\"));",
+                  "pm.test(\"Nombre de descarga\", () => pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-04 | Confirmar el lote cargado",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ingesta/{{lote_id}}/confirmar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ingesta",
+                "{{lote_id}}",
+                "confirmar"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-04 | Confirmar el lote cargado. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "const data=pm.response.json(); pm.test('Importación confirmada',()=>pm.expect(data.lote.estado).to.eql('IMPORTADO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-04 | Segunda confirmación rechazada",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ingesta/{{lote_id}}/confirmar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ingesta",
+                "{{lote_id}}",
+                "confirmar"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-04 | Segunda confirmación rechazada. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

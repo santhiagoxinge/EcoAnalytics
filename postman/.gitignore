@@ -1,0 +1,8 @@
+*.local.json
+*-privado.json
+evidencias/*
+!evidencias/RESUMEN.md
+!evidencias/postman-runner.png
+# Estado de sesión creado por Postman Desktop; puede incluir tokens y valores locales.
+collections/
+environments/

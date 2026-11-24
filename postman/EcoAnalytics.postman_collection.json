@@ -1,0 +1,1956 @@
+{
+  "info": {
+    "name": "EcoAnalytics — Verificación de API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección para sustentación: consultas, reportes y casos inválidos. Requiere el backend y datos demo. Los inicios de sesión y los pronósticos pueden registrar auditoría y alertas, respectivamente. No crea usuarios ni confirma lotes. Autor: Cristhian Santiago Parra Erazo."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const referencia = pm.environment.get('fecha_referencia');",
+          "const hoy = referencia ? new Date(referencia + 'T12:00:00') : new Date(Date.now() - 30 * 86400000);",
+          "const iso = d => d.toISOString().slice(0, 10);",
+          "const hace = n => new Date(hoy.getTime() - n * 86400000);",
+          "pm.collectionVariables.set('desde', iso(hace(7)));",
+          "pm.collectionVariables.set('hasta', iso(hoy));",
+          "pm.collectionVariables.set('a_desde', iso(hace(14)));",
+          "pm.collectionVariables.set('a_hasta', iso(hace(8)));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "estacion_id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 — Consultas públicas",
+      "item": [
+        {
+          "name": "HU-06 | Resumen público de estaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/condiciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "condiciones"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "HU-06 | Resumen público de estaciones. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "const estaciones = pm.response.json();",
+                  "pm.test('Lista de estaciones', () => pm.expect(estaciones).to.be.an('array').that.is.not.empty);",
+                  "if (estaciones.length) {",
+                  "  const s = estaciones.find(e => e.disponible) || estaciones.find(e => e.estado === 'EN_LINEA') || estaciones[0];",
+                  "  pm.collectionVariables.set('estacion_id', String(s.id));",
+                  "  pm.collectionVariables.set('estacion_nombre', s.nombre);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-14 | Banner público de alertas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/alertas/banner",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "alertas",
+                "banner"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "HU-14 | Banner público de alertas. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "pm.test('Lista de avisos', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 — Autenticación y tokens",
+      "item": [
+        {
+          "name": "HU-01 | Iniciar sesión como admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "HU-01 | Iniciar sesión como admin. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo_admin}}\",\n  \"contrasena\": \"{{clave_admin}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "const data = pm.response.json();",
+                  "pm.test('Token y usuario', () => {",
+                  "  pm.expect(data.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(data.usuario.rol).to.eql('ADMINISTRADOR');",
+                  "  pm.expect(data.usuario).not.to.have.property('contrasenaCifrada');",
+                  "});",
+                  "if (pm.response.code === 200 && data.token) pm.collectionVariables.set('token_admin', data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-01 | Iniciar sesión como analista",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "HU-01 | Iniciar sesión como analista. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo_analista}}\",\n  \"contrasena\": \"{{clave_analista}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "const data = pm.response.json();",
+                  "pm.test('Token y usuario', () => {",
+                  "  pm.expect(data.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(data.usuario.rol).to.eql('ANALISTA');",
+                  "  pm.expect(data.usuario).not.to.have.property('contrasenaCifrada');",
+                  "});",
+                  "if (pm.response.code === 200 && data.token) pm.collectionVariables.set('token_analista', data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-01 | Iniciar sesión como ciudadano",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "HU-01 | Iniciar sesión como ciudadano. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo_ciudadano}}\",\n  \"contrasena\": \"{{clave_ciudadano}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "const data = pm.response.json();",
+                  "pm.test('Token y usuario', () => {",
+                  "  pm.expect(data.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(data.usuario.rol).to.eql('CIUDADANO');",
+                  "  pm.expect(data.usuario).not.to.have.property('contrasenaCifrada');",
+                  "});",
+                  "if (pm.response.code === 200 && data.token) pm.collectionVariables.set('token_ciudadano', data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-01 | Perfil de la sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/perfil",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "perfil"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-01 | Perfil de la sesión. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "pm.test('Perfil administrador', () => pm.expect(pm.response.json().rol).to.eql('ADMINISTRADOR'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 — Consultas HU-02 a HU-16",
+      "item": [
+        {
+          "name": "HU-02 | Consultar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-02 | Consultar usuarios. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-03 | Consultar estaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/estaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "estaciones"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-03 | Consultar estaciones. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-04/05 | Consultar lotes de importación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ingesta/lotes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ingesta",
+                "lotes"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-04/05 | Consultar lotes de importación. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-06 | Condiciones de la estación seleccionada",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/condiciones/{{estacion_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "condiciones",
+                "{{estacion_id}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_ciudadano}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-06 | Condiciones de la estación seleccionada. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-07 | Histórico paginado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/historico?estacionId={{estacion_id}}&desde={{desde}}&hasta={{hasta}}&pagina=1&tamano=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "historico"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "desde",
+                  "value": "{{desde}}"
+                },
+                {
+                  "key": "hasta",
+                  "value": "{{hasta}}"
+                },
+                {
+                  "key": "pagina",
+                  "value": "1"
+                },
+                {
+                  "key": "tamano",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_ciudadano}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-07 | Histórico paginado. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "pm.test('Filas paginadas', () => pm.expect(pm.response.json().filas.length).to.be.at.most(20));",
+                  "pm.test('Período con datos',()=>pm.expect(pm.response.json().resumen.total).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-07 | Descargar histórico CSV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/historico/exportar?estacionId={{estacion_id}}&desde={{desde}}&hasta={{hasta}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "historico",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "desde",
+                  "value": "{{desde}}"
+                },
+                {
+                  "key": "hasta",
+                  "value": "{{hasta}}"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-07 | Descargar histórico CSV. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Formato csv\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/csv\"));",
+                  "pm.test(\"Nombre de descarga\", () => pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-08 | Comparar períodos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/comparativa?estacionId={{estacion_id}}&variable=PM25&aDesde={{a_desde}}&aHasta={{a_hasta}}&bDesde={{desde}}&bHasta={{hasta}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "comparativa"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "variable",
+                  "value": "PM25"
+                },
+                {
+                  "key": "aDesde",
+                  "value": "{{a_desde}}"
+                },
+                {
+                  "key": "aHasta",
+                  "value": "{{a_hasta}}"
+                },
+                {
+                  "key": "bDesde",
+                  "value": "{{desde}}"
+                },
+                {
+                  "key": "bHasta",
+                  "value": "{{hasta}}"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-08 | Comparar períodos. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "pm.test('Ambos períodos tienen cobertura suficiente',()=>pm.expect(pm.response.json().comparable).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-08 | Exportar comparación CSV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/comparativa/exportar?estacionId={{estacion_id}}&variable=PM25&aDesde={{a_desde}}&aHasta={{a_hasta}}&bDesde={{desde}}&bHasta={{hasta}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "comparativa",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "variable",
+                  "value": "PM25"
+                },
+                {
+                  "key": "aDesde",
+                  "value": "{{a_desde}}"
+                },
+                {
+                  "key": "aHasta",
+                  "value": "{{a_hasta}}"
+                },
+                {
+                  "key": "bDesde",
+                  "value": "{{desde}}"
+                },
+                {
+                  "key": "bHasta",
+                  "value": "{{hasta}}"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-08 | Exportar comparación CSV. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Formato csv\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/csv\"));",
+                  "pm.test(\"Nombre de descarga\", () => pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-09 | Visualización multivariable",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/visualizacion?estacionId={{estacion_id}}&dias=3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "visualizacion"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "dias",
+                  "value": "3"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_ciudadano}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-09 | Visualización multivariable. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-10 | Indicadores agregados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/indicadores",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "indicadores"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-10 | Indicadores agregados. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-11 | Consultar anomalías",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/anomalias",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "anomalias"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-11 | Consultar anomalías. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-11 | Línea de tiempo de anomalías",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/anomalias/linea-tiempo?estacionId={{estacion_id}}&horas=72",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "anomalias",
+                "linea-tiempo"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "horas",
+                  "value": "72"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-11 | Línea de tiempo de anomalías. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-12 | Versiones de modelos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/modelos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "modelos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-12 | Versiones de modelos. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "const modelos=pm.response.json(); pm.test('Registro de modelos',()=>pm.expect(modelos).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-13 | Pronóstico de 24 horas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/pronostico?estacionId={{estacion_id}}&horas=24",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pronostico"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "horas",
+                  "value": "24"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_ciudadano}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-13 | Pronóstico de 24 horas. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "pm.test('Horizonte correcto', () => pm.expect(pm.response.json().horizonteHoras).to.eql(24));",
+                  "pm.test('Serie horaria completa', () => pm.expect(pm.response.json().pronostico.puntos).to.have.lengthOf(24));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-13 | Pronóstico de 48 horas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/pronostico?estacionId={{estacion_id}}&horas=48",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pronostico"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "horas",
+                  "value": "48"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_ciudadano}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-13 | Pronóstico de 48 horas. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "pm.test('Horizonte correcto', () => pm.expect(pm.response.json().horizonteHoras).to.eql(48));",
+                  "pm.test('Serie horaria completa', () => pm.expect(pm.response.json().pronostico.puntos).to.have.lengthOf(48));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-14 | Centro de alertas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/alertas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "alertas"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_ciudadano}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-14 | Centro de alertas. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-16 | Monitoreo técnico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/monitoreo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "monitoreo"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-16 | Monitoreo técnico. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-16 | Auditoría",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/monitoreo/auditoria",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "monitoreo",
+                "auditoria"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-16 | Auditoría. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 — Reportes",
+      "item": [
+        {
+          "name": "HU-15 | Vista previa del reporte",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/vista-previa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "vista-previa"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-15 | Vista previa del reporte. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"RESUMEN_EJECUTIVO\",\n  \"estacionId\": \"{{estacion_id}}\",\n  \"desde\": \"{{desde}}\",\n  \"hasta\": \"{{hasta}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-15 | Exportar reporte PDF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/exportar?formato=PDF",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "formato",
+                  "value": "PDF"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-15 | Exportar reporte PDF. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"RESUMEN_EJECUTIVO\",\n  \"estacionId\": \"{{estacion_id}}\",\n  \"desde\": \"{{desde}}\",\n  \"hasta\": \"{{hasta}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Formato pdf\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/pdf\"));",
+                  "pm.test(\"Nombre de descarga\", () => pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-15 | Exportar reporte CSV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/exportar?formato=CSV",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "formato",
+                  "value": "CSV"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-15 | Exportar reporte CSV. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"RESUMEN_EJECUTIVO\",\n  \"estacionId\": \"{{estacion_id}}\",\n  \"desde\": \"{{desde}}\",\n  \"hasta\": \"{{hasta}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Formato csv\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/csv\"));",
+                  "pm.test(\"Nombre de descarga\", () => pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-15 | Exportar reporte EXCEL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/exportar?formato=EXCEL",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "formato",
+                  "value": "EXCEL"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-15 | Exportar reporte EXCEL. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"RESUMEN_EJECUTIVO\",\n  \"estacionId\": \"{{estacion_id}}\",\n  \"desde\": \"{{desde}}\",\n  \"hasta\": \"{{hasta}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Formato excel\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\"));",
+                  "pm.test(\"Nombre de descarga\", () => pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 — Validaciones y permisos",
+      "item": [
+        {
+          "name": "Seguridad | Acceso protegido sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Seguridad | Acceso protegido sin token. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-01 | Credenciales incorrectas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "HU-01 | Credenciales incorrectas. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo_admin}}\",\n  \"contrasena\": \"clave-deliberadamente-incorrecta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-01 | Campos de registro inválidos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/registro",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "HU-01 | Campos de registro inválidos. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreCompleto\": \"\",\n  \"correo\": \"correo-invalido\",\n  \"contrasena\": \"123\",\n  \"rol\": \"CIUDADANO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Permisos | Ciudadano no administra usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_ciudadano}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Permisos | Ciudadano no administra usuarios. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Permisos | Analista no administra usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Permisos | Analista no administra usuarios. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Permisos | Ciudadano no consulta modelos de entrenamiento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/modelos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "modelos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_ciudadano}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Permisos | Ciudadano no consulta modelos de entrenamiento. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-06 | Estación inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/condiciones/9223372036854775807",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "condiciones",
+                "9223372036854775807"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-06 | Estación inexistente. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-07 | Fechas invertidas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/historico?estacionId={{estacion_id}}&desde={{hasta}}&hasta={{desde}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "historico"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "desde",
+                  "value": "{{hasta}}"
+                },
+                {
+                  "key": "hasta",
+                  "value": "{{desde}}"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-07 | Fechas invertidas. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-13 | Horizonte no permitido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/pronostico?estacionId={{estacion_id}}&horas=12",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pronostico"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "horas",
+                  "value": "12"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-13 | Horizonte no permitido. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-12 | Solicitud de entrenamiento sin algoritmo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/modelos/entrenar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "modelos",
+                "entrenar"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-12 | Solicitud de entrenamiento sin algoritmo. Contrato contrastado con los controladores y DTO locales de EcoAnalytics.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-08 | Exportación sin datos rechazada",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/comparativa/exportar?estacionId={{estacion_id}}&variable=PM25&aDesde=2020-01-01&aHasta=2020-01-07&bDesde=2020-02-01&bHasta=2020-02-07",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "comparativa",
+                "exportar"
+              ],
+              "query": [
+                {
+                  "key": "estacionId",
+                  "value": "{{estacion_id}}"
+                },
+                {
+                  "key": "variable",
+                  "value": "PM25"
+                },
+                {
+                  "key": "aDesde",
+                  "value": "2020-01-01"
+                },
+                {
+                  "key": "aHasta",
+                  "value": "2020-01-07"
+                },
+                {
+                  "key": "bDesde",
+                  "value": "2020-02-01"
+                },
+                {
+                  "key": "bHasta",
+                  "value": "2020-02-07"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_analista}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "HU-08 | Exportación sin datos rechazada. Contrato contrastado con los controladores y DTO locales de EcoAnalytics."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Respuesta JSON\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
