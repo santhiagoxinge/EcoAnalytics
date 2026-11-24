@@ -1,0 +1,15 @@
+{
+  "region": "us-east-1",
+  "instance_id": "i-04167941c93c0afab",
+  "instance_type": "t3.small",
+  "volume_id": "vol-0025e8e45316594d7",
+  "security_group_id": "sg-04aa7f452c3e79fe3",
+  "launch_template_id": "lt-09a5eaeccb9a65967",
+  "launch_template_version": 2,
+  "cloudfront_id": "E38KIYWUM79W3W",
+  "public_url": "https://dsjd5zau1tr4h.cloudfront.net",
+  "origin_dns": "ec2-100-61-181-23.compute-1.amazonaws.com",
+  "bucket": "ecoanalytics-demo-755329540997",
+  "runtime_parameter": "/ecoanalytics/demo/runtime",
+  "release_sha256": "13a5e54ba6a27e3df95b22d7c7ee53cfabcb1d1371c1aef0f7bd5794b8367721"
+}

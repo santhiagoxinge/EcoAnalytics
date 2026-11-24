@@ -1,0 +1,9 @@
+*.private.json
+*.env
+*.archive.gz*
+*.zip
+*.tar.gz
+artifacts/
+evidencias/*
+!evidencias/RESUMEN.md
+!evidencias/*.png

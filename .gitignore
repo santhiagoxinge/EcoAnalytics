@@ -1,0 +1,13 @@
+# Archivos locales, credenciales y productos de compilación.
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules/
+**/target/
+**/dist/
+**/*.local.json
+**/*.private.json
+**/*.vpp.bak_*
+**/*.vpp.lck
+.postman/
+.playwright-mcp/

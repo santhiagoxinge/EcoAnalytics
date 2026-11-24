@@ -1,0 +1,157 @@
+/* EcoAnalytics design tokens — Apple HIG–inspired, light and dark. */
+:root {
+  color-scheme: light;
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", "Segoe UI", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter Variable", "Segoe UI", system-ui, sans-serif;
+
+  /* Surfaces */
+  --bg: #f5f5f7;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f9f9fb;
+  --surface-sunken: #f0f0f3;
+  --sidebar: rgba(236, 236, 240, 0.78);
+  --toolbar: rgba(245, 245, 247, 0.8);
+  --overlay: rgba(0, 0, 0, 0.28);
+  --hover: rgba(0, 0, 0, 0.045);
+
+  /* Text */
+  --text: #1d1d1f;
+  --text-2: #6e6e73;
+  --text-3: #8e8e93;
+  --text-on-accent: #ffffff;
+
+  /* Lines */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+  --separator: rgba(60, 60, 67, 0.12);
+
+  /* System colors */
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-soft: rgba(0, 113, 227, 0.1);
+  --green: #248a3d;
+  --green-fill: #34c759;
+  --green-soft: rgba(52, 199, 89, 0.12);
+  --orange: #c45500;
+  --orange-fill: #ff9500;
+  --orange-soft: rgba(255, 149, 0, 0.13);
+  --red: #d70015;
+  --red-fill: #ff3b30;
+  --red-soft: rgba(255, 59, 48, 0.1);
+  --purple: #8944ab;
+  --purple-fill: #af52de;
+  --purple-soft: rgba(175, 82, 222, 0.11);
+  --yellow-fill: #ffcc00;
+  --gray-fill: #aeaeb2;
+
+  /* Air-quality scale (fill for marks, ink for text on light surfaces) */
+  --aqi-good: #34c759;
+  --aqi-good-ink: #1f7a36;
+  --aqi-acceptable: #f2c200;
+  --aqi-acceptable-ink: #7d6200;
+  --aqi-sensitive: #ff9500;
+  --aqi-sensitive-ink: #b25000;
+  --aqi-harmful: #ff3b30;
+  --aqi-harmful-ink: #c4000f;
+  --aqi-very: #af52de;
+  --aqi-very-ink: #8944ab;
+  --aqi-hazard: #8e1c3b;
+  --aqi-hazard-ink: #8e1c3b;
+
+  /* Chart series */
+  --series-1: #0071e3;
+  --series-2: #30b0c7;
+  --series-3: #ff9500;
+  --series-4: #af52de;
+  --grid: rgba(0, 0, 0, 0.06);
+
+  /* Shape */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* Depth */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.16), 0 4px 16px rgba(0, 0, 0, 0.06);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-micro: 140ms;
+  --dur-short: 220ms;
+  --dur-medium: 320ms;
+
+  /* Layout */
+  --sidebar-width: 248px;
+  --toolbar-height: 56px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #000000;
+    --bg-elevated: #1c1c1e;
+    --surface: #1c1c1e;
+    --surface-2: #232325;
+    --surface-sunken: #2c2c2e;
+    --sidebar: rgba(28, 28, 30, 0.82);
+    --toolbar: rgba(0, 0, 0, 0.72);
+    --overlay: rgba(0, 0, 0, 0.55);
+    --hover: rgba(255, 255, 255, 0.07);
+
+    --text: #f5f5f7;
+    --text-2: #a1a1a6;
+    --text-3: #8d8d93;
+
+    --border: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --separator: rgba(84, 84, 88, 0.45);
+
+    --accent: #0a84ff;
+    --accent-hover: #409cff;
+    --accent-soft: rgba(10, 132, 255, 0.18);
+    --green: #30d158;
+    --green-fill: #30d158;
+    --green-soft: rgba(48, 209, 88, 0.16);
+    --orange: #ff9f0a;
+    --orange-fill: #ff9f0a;
+    --orange-soft: rgba(255, 159, 10, 0.16);
+    --red: #ff6961;
+    --red-fill: #ff453a;
+    --red-soft: rgba(255, 69, 58, 0.16);
+    --purple: #da8fff;
+    --purple-fill: #bf5af2;
+    --purple-soft: rgba(191, 90, 242, 0.18);
+    --yellow-fill: #ffd60a;
+    --gray-fill: #636366;
+
+    --aqi-good: #30d158;
+    --aqi-good-ink: #30d158;
+    --aqi-acceptable: #ffd60a;
+    --aqi-acceptable-ink: #ffd60a;
+    --aqi-sensitive: #ff9f0a;
+    --aqi-sensitive-ink: #ff9f0a;
+    --aqi-harmful: #ff453a;
+    --aqi-harmful-ink: #ff6961;
+    --aqi-very: #bf5af2;
+    --aqi-very-ink: #da8fff;
+    --aqi-hazard: #c0395f;
+    --aqi-hazard-ink: #ff7a9e;
+
+    --series-1: #0a84ff;
+    --series-2: #40c8e0;
+    --series-3: #ff9f0a;
+    --series-4: #bf5af2;
+    --grid: rgba(255, 255, 255, 0.07);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.6);
+  }
+}

@@ -8,11 +8,18 @@ Estas colecciones permiten enviar peticiones al backend real de EcoAnalytics y c
 |---|---|
 | `EcoAnalytics.postman_collection.json` | 39 peticiones: consultas, autenticación, reportes y casos de error. |
 | `EcoAnalytics-Ingesta.postman_collection.json` | 5 peticiones ordenadas para cargar, revisar y confirmar un CSV. |
+| `EcoAnalytics-AWS.postman_environment.json` | Entorno público para la instalación HTTPS en AWS, con contraseñas vacías. |
 | `EcoAnalytics-Local.postman_environment.json` | Plantilla de entorno para `http://localhost:8080`, con contraseñas vacías. |
 | `datos/mediciones-ejemplo.csv` | Tres mediciones válidas para Estación Centro. |
 | `evidencias/RESUMEN.md` | Resultado de la ejecución local comprobada. |
 
-## Preparación
+## Probar el despliegue AWS
+
+Importar `EcoAnalytics-AWS.postman_environment.json` y seleccionar **EcoAnalytics — AWS**. Su `base_url` es `https://dsjd5zau1tr4h.cloudfront.net`. Completar localmente las contraseñas demo y ejecutar las mismas colecciones en orden. En este equipo se dejó además `EcoAnalytics-AWS.local.json`, privado y excluido de Git.
+
+El 24/11/2026 las dos colecciones se ejecutaron contra AWS: **44 peticiones y 107 comprobaciones aprobadas**, sin fallos. Consultar la [evidencia AWS](../aws/evidencias/RESUMEN.md).
+
+## Preparación local
 
 1. Mantener MongoDB disponible en `localhost:27017` y ejecutar el backend de EcoAnalytics en el puerto 8080. El frontend no es necesario para estas pruebas.
 2. En Postman, pulsar **Import** e importar las dos colecciones y el entorno. No importar reportes privados.

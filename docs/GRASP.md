@@ -2,19 +2,19 @@
 
 Los principios GRASP orientan la asignación de responsabilidades entre objetos. En EcoAnalytics se documentan a partir del código existente, con ejemplos de métodos y colaboradores concretos. Esta revisión describe decisiones de diseño y sus límites; no presenta una refactorización ni una medición de rendimiento nueva.
 
-Las rutas de este documento parten de `backend/src/main/java/com/ecoanalytics/`, en el proyecto local. Complementa `docs/DECISIONES_DISENO.md` y las vistas corregidas de `docs/nuevas-vistas/`.
+Las rutas de este documento parten de `backend/src/main/java/com/ecoanalytics/`, en el código fuente del repositorio. Complementa `docs/DECISIONES_DISENO.md` y las vistas corregidas de `docs/nuevas-vistas/`.
 
 ## 1. Experto en información
 
-**Ubicación:** `model/Usuario.java`, método `validarInicioSesion()`; utilizado desde `service/AutenticacionService.java`, método `iniciarSesion()`.
+**Ubicación:** [model/Usuario.java](../backend/src/main/java/com/ecoanalytics/model/Usuario.java), método `validarInicioSesion()`; utilizado desde [service/AutenticacionService.java](../backend/src/main/java/com/ecoanalytics/service/AutenticacionService.java), método `iniciarSesion()`.
 
 El usuario conoce su propio estado y comprueba si está pendiente o inactivo antes de permitir el ingreso. El servicio autentica las credenciales y coordina el proceso, pero delega esta decisión en la entidad que posee la información.
 
-**Beneficio:** la regla de acceso por estado queda centralizada y puede reutilizarse sin repetir condicionales en los controladores. También aparece en `model/Anomalia.java`, que controla sus transiciones mediante `notificar()` y `descartar()`, y en `model/Medicion.java`, que calcula `ica()` con sus valores.
+**Beneficio:** la regla de acceso por estado queda centralizada y puede reutilizarse sin repetir condicionales en los controladores. También aparece en [model/Anomalia.java](../backend/src/main/java/com/ecoanalytics/model/Anomalia.java), que controla sus transiciones mediante `notificar()` y `descartar()`, y en [model/Medicion.java](../backend/src/main/java/com/ecoanalytics/model/Medicion.java), que calcula `ica()` con sus valores.
 
 ## 2. Creador
 
-**Ubicación:** `service/IngestaService.java`, métodos `cargar()` y `confirmar()`.
+**Ubicación:** [service/IngestaService.java](../backend/src/main/java/com/ecoanalytics/service/IngestaService.java), métodos `cargar()` y `confirmar()`.
 
 `cargar()` reúne nombre de archivo, tipo de fuente, actor y resultados de validación. Con esos datos construye `LoteIngesta` e `IncidenciaValidacion`. `confirmar()` utiliza los registros revisados y las estaciones resueltas para construir `Medicion`.
 
@@ -24,7 +24,7 @@ La selección de algoritmos se concentra adicionalmente en `infraestructura/ml/F
 
 ## 3. Controlador
 
-**Ubicación:** `service/IngestaService.java` y `service/AutenticacionService.java`.
+**Ubicación:** [service/IngestaService.java](../backend/src/main/java/com/ecoanalytics/service/IngestaService.java) y [service/AutenticacionService.java](../backend/src/main/java/com/ecoanalytics/service/AutenticacionService.java).
 
 Son ejemplos de controladores de casos de uso en el sentido GRASP: coordinan una operación del sistema y delegan responsabilidades en entidades, reglas, repositorios y adaptadores. Por ejemplo, ingesta selecciona el lector, valida el archivo, registra el lote y confirma las mediciones.
 
@@ -34,7 +34,7 @@ Los tipos `controller/IngestaController.java` y `controller/AutenticacionControl
 
 ## 4. Bajo acoplamiento
 
-**Ubicación:** `exception/ExcepcionNegocio.java` y `exception/ManejadorExcepciones.java`, método `negocio()`.
+**Ubicación:** [exception/ExcepcionNegocio.java](../backend/src/main/java/com/ecoanalytics/exception/ExcepcionNegocio.java) y [exception/ManejadorExcepciones.java](../backend/src/main/java/com/ecoanalytics/exception/ManejadorExcepciones.java), método `negocio()`.
 
 La excepción identifica el tipo de error de negocio con su propio enumerado. El manejador traduce ese tipo al estado HTTP. Por ejemplo, la entidad `Usuario` puede rechazar una operación sin elegir directamente un `HttpStatus`.
 
@@ -42,7 +42,7 @@ La excepción identifica el tipo de error de negocio con su propio enumerado. El
 
 ## 5. Alta cohesión
 
-**Ubicación:** `service/ValidacionService.java`, método `validar()`; `model/validacion/ReglaIdentificacion.java`, `ReglaValoresMedicion.java` y `ReglaDuplicado.java`.
+**Ubicación:** [service/ValidacionService.java](../backend/src/main/java/com/ecoanalytics/service/ValidacionService.java), método `validar()`; [model/validacion/ReglaIdentificacion.java](../backend/src/main/java/com/ecoanalytics/model/validacion/ReglaIdentificacion.java), `ReglaValoresMedicion.java` y `ReglaDuplicado.java`.
 
 Cada regla comprueba un aspecto de calidad: identificación de la estación y fecha, valores ambientales o duplicados. El servicio recorre esas reglas y clasifica el registro como válido, con advertencia o descartado. La lectura CSV/JSON pertenece a los adaptadores, y la persistencia del lote a otros colaboradores.
 
@@ -50,15 +50,15 @@ Cada regla comprueba un aspecto de calidad: identificación de la estación y fe
 
 ## 6. Polimorfismo
 
-**Ubicación:** `model/prediccion/ModeloPredictivo.java`; implementaciones en `infraestructura/ml/ModeloMediaMovil.java`, `ModeloRegresionLineal.java`, `ModeloKVecinos.java` y `ModeloRandomForest.java`.
+**Ubicación:** [model/prediccion/ModeloPredictivo.java](../backend/src/main/java/com/ecoanalytics/model/prediccion/ModeloPredictivo.java); implementaciones en [infraestructura/ml/ModeloMediaMovil.java](../backend/src/main/java/com/ecoanalytics/infraestructura/ml/ModeloMediaMovil.java), `ModeloRegresionLineal.java`, `ModeloKVecinos.java` y `ModeloRandomForest.java`.
 
-Los servicios usan el contrato `ModeloPredictivo` para entrenar y predecir con algoritmos distintos. La implementación concreta se selecciona en la fábrica. Otro ejemplo es `model/TipoIndicador.java`: cada constante define su cálculo y `IndicadorService` lo solicita mediante `calcular()`.
+Los servicios usan el contrato `ModeloPredictivo` para entrenar y predecir con algoritmos distintos. La implementación concreta se selecciona en la fábrica. Otro ejemplo es [model/TipoIndicador.java](../backend/src/main/java/com/ecoanalytics/model/TipoIndicador.java): cada constante define su cálculo y `IndicadorService` lo solicita mediante `calcular()`.
 
 **Beneficio:** se evita colocar la implementación de cada algoritmo en el servicio de pronóstico y se pueden comparar o sustituir implementaciones mediante el mismo contrato. Agregar un algoritmo todavía exige modificar la fábrica y el enumerado correspondiente.
 
 ## 7. Fabricación pura
 
-**Ubicación:** `repository/GeneradorSecuencias.java`, métodos `siguiente()` y `reservar()`; `repository/InsercionMasiva.java`, método `insertar()`.
+**Ubicación:** [repository/GeneradorSecuencias.java](../backend/src/main/java/com/ecoanalytics/repository/GeneradorSecuencias.java), métodos `siguiente()` y `reservar()`; [repository/InsercionMasiva.java](../backend/src/main/java/com/ecoanalytics/repository/InsercionMasiva.java), método `insertar()`.
 
 Estos colaboradores no representan conceptos ambientales. Existen para aislar una necesidad técnica: asignar identificadores numéricos y realizar inserciones por lotes. Las entidades implementan `ConIdSecuencial` sin consultar MongoDB para obtener su identificador.
 
@@ -74,7 +74,7 @@ Esta es una optimización identificable en el código: para un lote no vacío se
 
 ## 8. Indirección
 
-**Ubicación:** `repository/AsignadorIdSecuencial.java`, método `onBeforeConvert()`; `service/IngestaService.java`, publicación de `MedicionesRegistradasEvento`; `service/AlertaService.java` y `AnomaliaService.java`, recepción de eventos.
+**Ubicación:** [repository/AsignadorIdSecuencial.java](../backend/src/main/java/com/ecoanalytics/repository/AsignadorIdSecuencial.java), método `onBeforeConvert()`; [service/IngestaService.java](../backend/src/main/java/com/ecoanalytics/service/IngestaService.java), publicación de `MedicionesRegistradasEvento`; [service/AlertaService.java](../backend/src/main/java/com/ecoanalytics/service/AlertaService.java) y `AnomaliaService.java`, recepción de eventos.
 
 El callback de Spring Data media entre la escritura individual y la asignación del id. Los servicios pueden guardar documentos sin repetir la lógica del contador. El callback obtiene `GeneradorSecuencias` mediante `ObjectProvider`, de forma diferida, para evitar el ciclo de construcción que produciría su dependencia con `MongoTemplate`.
 
@@ -84,7 +84,7 @@ En la ingesta, el publicador de eventos media entre registrar mediciones y activ
 
 ## 9. Variaciones protegidas
 
-**Ubicación:** `model/ingesta/AdaptadorFuenteMediciones.java`, `model/reporte/ExportadorReporte.java` y `model/alerta/EmisorAlerta.java`.
+**Ubicación:** [model/ingesta/AdaptadorFuenteMediciones.java](../backend/src/main/java/com/ecoanalytics/model/ingesta/AdaptadorFuenteMediciones.java), [model/reporte/ExportadorReporte.java](../backend/src/main/java/com/ecoanalytics/model/reporte/ExportadorReporte.java) y [model/alerta/EmisorAlerta.java](../backend/src/main/java/com/ecoanalytics/model/alerta/EmisorAlerta.java).
 
 La lectura CSV/JSON, la exportación PDF/CSV/Excel y los canales de alertas se consumen mediante contratos. `FabricaFuentesMediciones` selecciona lectores de una lista inyectada. `ReporteService` organiza exportadores por formato y `AlertaService` organiza emisores por código de canal.
 
