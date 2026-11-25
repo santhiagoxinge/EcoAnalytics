@@ -20,7 +20,7 @@ Las vistas lógica y de desarrollo contienen bastante detalle. Para leer atribut
 
 ## Mejoras realizadas
 
-- **Contexto:** tres perfiles humanos, aplicación completa y OpenStreetMap. Se retiraron de la vista los actores que presentaban sensores y canales simulados como integraciones externas actuales.
+- **Contexto:** EcoAnalytics en una elipse central azul, con Ciudadano, Analista ambiental, Administrador y OpenStreetMap en rectángulos alrededor. Las ocho flechas continuas identifican los flujos de entrada y salida. Es una vista de contexto con flujos, no un catálogo de casos de uso. No se presentan sensores ni canales simulados como integraciones externas actuales.
 - **Funcional:** módulos del backend y sus interfaces; separación de flechas y títulos; dependencia del frontend con OpenStreetMap; aclaración sobre eventos Spring y emisores simulados.
 - **Lógica:** nota separada de los enumerados; asociación `Pronostico–Punto` sin composición, porque `recortado()` comparte los puntos; dependencia de `EmisorAlerta.canal()` hacia `CanalAlerta.Codigo`; aclaración de que un record no garantiza inmutabilidad profunda de listas o arrays.
 - **Contratos:** subvista adicional con 22 realizaciones reales: diez documentos con `ConIdSecuencial`, cuatro modelos predictivos, tres exportadores, dos lectores y tres reglas de validación. Reutiliza los elementos de las otras vistas.
