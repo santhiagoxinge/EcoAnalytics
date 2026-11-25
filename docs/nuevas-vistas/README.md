@@ -13,6 +13,7 @@ El [archivo maestro](EcoAnalytics-Nuevas-Vistas.vpp) contiene las siete vistas y
 | 3. Lógica | [PNG](img/3.png) | [SVG](img/3.svg) | [VPP](vpp/3-Vista-logica.vpp) |
 | 3.1. Contratos e implementaciones | [PNG](img/3.1.png) | [SVG](img/3.1.svg) | [VPP](vpp/3.1-Contratos-implementaciones.vpp) |
 | 4. Desarrollo | [PNG](img/4.png) | [SVG](img/4.svg) | [VPP](vpp/4-Vista-desarrollo.vpp) |
+| 4. Desarrollo completo con atributos (adicional) | [PNG](../vista-desarrollo-completa/img/4.png) | [SVG](../vista-desarrollo-completa/img/4.svg) | [VPP](../vista-desarrollo-completa/vpp/4-Vista-desarrollo-completa.vpp) |
 | 5. Despliegue AWS | [PNG](img/5.png) | [SVG](img/5.svg) | [VPP](vpp/5-Vista-despliegue.vpp) |
 | 5.1. Desarrollo local | [PNG](img/5.1.png) | [SVG](img/5.1.svg) | [VPP](vpp/5.1-Vista-despliegue-local.vpp) |
 
